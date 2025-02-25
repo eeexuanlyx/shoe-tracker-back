@@ -97,7 +97,7 @@ const updateProduct = async (req, res) => {
     }
     if (quantity !== undefined) {
       updates.push(`quantity = $${index}`);
-      values.push(quantity);
+      values.push(Number(quantity));
       index++;
     }
 
@@ -145,4 +145,32 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-module.exports = { getProducts, addProduct, updateProduct, deleteProduct };
+const getFilterOptions = async (req, res) => {
+  try {
+    const typesResult = await pool.query("SELECT DISTINCT type FROM products;");
+    const brandsResult = await pool.query(
+      "SELECT DISTINCT brand FROM products;"
+    );
+    const sizesResult = await pool.query("SELECT DISTINCT size FROM products;");
+    const colorsResult = await pool.query(
+      "SELECT DISTINCT color FROM products;"
+    );
+
+    const types = typesResult.rows.map((row) => row.type);
+    const brands = brandsResult.rows.map((row) => row.brand);
+    const sizes = sizesResult.rows.map((row) => row.size);
+    const colors = colorsResult.rows.map((row) => row.color);
+
+    res.json({ types, brands, sizes, colors });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch filter options" });
+  }
+};
+
+module.exports = {
+  getProducts,
+  addProduct,
+  updateProduct,
+  deleteProduct,
+  getFilterOptions,
+};
